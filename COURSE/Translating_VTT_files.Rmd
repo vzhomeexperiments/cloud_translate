@@ -1,0 +1,131 @@
+---
+title: "Procedure to translate VTT files"
+author: "Vladimir Zhbanko"
+output:
+  html_document:
+    df_print: paged
+---
+
+### Encrypt your API key in R!
+
+#### Create your personal private and public keys
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE, paged.print=TRUE}
+# Generate your private key and write it to the folder, we assume you will save it to the folder C:/Users/UserName/.ssh/ mac users can adapt the path...
+# if necessary install package
+# install.packages("openssl"); install.packages("tidyverse")
+# loads library open ssl and tidyverse
+library(openssl)
+library(tidyverse)
+
+# private and public key path
+path_private_key <- file.path("C:/Users/fxtrams/.ssh", "id_api")
+path_public_key <- file.path("C:/Users/fxtrams/.ssh", "id_api.pub")
+
+### KNOW WHAT YOU DOING!!! DO NOT RUN THIS CODE UNNECESARRILY! IT WILL OVERWRITE YOUR KEYS!!!
+# generate private key (feel free to customize bits lenght!)
+rsa_keygen(bits = 5555) %>% write_pem(path = path_private_key)
+# extract and write your public key
+read_key(file = path_private_key, password = "") %>% `[[`("pubkey") %>% write_pem(path_public_key)
+
+```
+
+#### Encrypt your API Key
+
+Now you have your personal public key which we will use to encrypt the credentials
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+# encrypt your key (I am showing my API key because I will delete it anyhow after creating the course)
+library(openssl)
+library(tidyverse)
+# private and public key path
+path_private_key <- file.path("C:/Users/fxtrams/.ssh", "id_api")
+path_public_key <- file.path("C:/Users/fxtrams/.ssh", "id_api.pub")
+## Encrypt with your public key - delete the code and clear history files, console
+"asdfasfasdfasgadgasfasdfasdfasdfasdf23asdfasdffa" %>% 
+  # serialize the object
+  serialize(connection = NULL) %>% 
+  # encrypt the object
+  encrypt_envelope(path_public_key) %>% 
+  # write encrypted data to File to your working directory
+  write_rds("api_key.enc.rds")
+
+```
+
+Now we have our encrypted key inside our project folder! 
+
+If you will use this script later -> delete API key from your script and feel free to use Version Control Repository!
+
+**NOTE:** if you plan to collaborate and use your key by multiple persons with version control check out R package 'secret'. Remember that you can learn how to use it in my course about Cryptography in R!
+
+### Translate your files!!!
+
+Before translation we should retrieve api_key... We can now return to read our API key:
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+library(openssl)
+library(tidyverse)
+library(translateR)
+
+# get back our encrypted API key
+out <- read_rds("api_key.enc.rds")
+# path to our key
+path_private_key <- file.path("C:/Users/fxtrams/.ssh", "id_api")
+api_key <- decrypt_envelope(out$data, out$iv, out$session, path_private_key, password = "") %>% 
+  unserialize()
+```
+
+There are a lot of R packages out there... I tried to make another one...
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+# installing my R package from github
+devtools::install_github("vzhomeexperiments/translateVTT")
+
+library(translateVTT)
+
+# view package author
+citation("translateVTT")
+```
+
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+# make a list of files to translate
+filesToTranslate <-list.files("C:/Users/fxtrams/Downloads/", pattern="*.vtt", full.names=TRUE)
+# make a list of languages
+languages <- c("fr", "de", "hi", "id","it", "ms", "pt", "ru", "es", "zh-CN", "tr") #add any other language
+# get api key
+out <- read_rds("api_key.enc.rds")
+
+# decrypting the password using public data list and private key
+api_key <- decrypt_envelope(out$data, out$iv, out$session, "C:/Users/fxtrams/.ssh/id_api", password = "") %>% unserialize()
+```
+
+# Translation test
+
+```{r}
+translateVTT(filesToTranslate[1], sourceLang = "en", destLang = languages[1], apikey = api_key)
+```
+
+
+We are now fully ready to translate but code below would show how to use tryCatch() function to continue for loop in case there is an error with one language
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
+
+# for loop as more robust function
+for (FILE in filesToTranslate) {
+  # for loop for languages
+  for (LANG in languages) {
+    tryCatch({
+    # translation
+    translateVTT(fileName = FILE, sourceLang = "en", destLang = LANG, apikey = api_key)
+    }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  }
+}
+
+
+```
+
+## Results
+
+Your translated files can be found in the same folder as original files...
+
