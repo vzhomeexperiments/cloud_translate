@@ -3,6 +3,8 @@
 devtools::install_github("vzhomeexperiments/translateVTT")
 
 library(translateVTT)
+library(tidyverse)
+library(openssl)
 
 # citation("translateVTT")
 
