@@ -86,3 +86,98 @@ resultOK <- Sys.setlocale(locale = "Chinese")
 
 Sys.getlocale()
 Sys.setlocale(locale = "russian")
+
+
+### Trial harvest and translate websites
+## inspiration from: https://www.datacamp.com/community/tutorials/r-web-scraping-rvest
+library(rvest)
+# this url for the jobs website
+# https://www.jobs.ch/en/vacancies/?region=13&term=
+url <- "https://www.jobs.ch/en/vacancies/?region=13&term="
+  
+d1 <- url %>% read_html() %>% html_nodes("h2") %>% html_text()
+d2 <- url %>% read_html() %>% html_nodes(".serp-item-head-3") %>% html_text()
+
+
+### ===============================================
+# General-purpose data wrangling
+library(tidyverse)  
+
+# Parsing of HTML/XML files  
+library(rvest)    
+
+# String manipulation
+library(stringr)   
+
+# Verbose regular expressions
+library(rebus)     
+
+# Eases DateTime manipulation
+library(lubridate)
+
+# this url for the jobs website
+# https://www.jobs.ch/en/vacancies/?region=13&term=
+url <- "https://www.jobs.ch/en/vacancies/?region=13&term="
+
+# first page
+"https://www.jobs.ch/en/vacancies/?page=1&region=13&term="
+
+# last page
+"https://www.jobs.ch/en/vacancies/?page=100&region=13&term="
+
+url1 <- "https://www.jobs.ch/en/vacancies/?page=2&region=24&term="
+
+# job title
+job_data1 <- url1 %>% 
+  read_html() %>%     
+  html_nodes(".t--job-link") %>% 
+  # Extract the raw text as a list
+  html_text()  
+
+# job company
+job_data2 <- url1 %>% 
+  read_html() %>%     
+  html_nodes(".serp-item-head-2") %>% #.x--company-link
+  # Extract the raw text as a list
+  html_text()  
+
+# job description
+job_data3 <- url1 %>% 
+  read_html() %>%     
+  html_nodes(".serp-item-head-3") %>% 
+  # Extract the raw text as a list
+  html_text()  
+
+job_table <- data.frame(job_title = job_data1,
+                        job_firma = job_data2,
+                        job_descr = job_data3)
+
+
+
+
+# function to ge the last page as a number
+get_last_page <- function(url, class_html = 'x--paginator row'){
+  #url <- "https://www.jobs.ch/en/vacancies/?page=2&region=24&term="
+  #class_html <- 'page hidden-xs'
+  pages_data <- url %>% 
+    read_html() %>% 
+    # The '.' indicates the class
+    html_nodes(class_html) %>% 
+    # Extract the raw text as a list
+    html_text()                   
+  
+  # The second to last of the buttons is the one
+  pages_data[(length(pages_data)-1)] %>%            
+    # Take the raw string
+    unname() %>%                                     
+    # Convert to number
+    as.numeric()                                     
+}
+
+
+first_page <- read_html(url)
+latest_page_number <- get_last_page(first_page)
+
+
+
+

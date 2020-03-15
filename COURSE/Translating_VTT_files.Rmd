@@ -68,7 +68,8 @@ library(tidyverse)
 library(translateR)
 
 # get back our encrypted API key
-out <- read_rds("api_key.enc.rds")
+out <- read_rds(file.path("C:/Users/fxtrams/Documents/003_Udemy/cloud_translate",
+                          "api_key.enc.rds"))
 # path to our key
 path_private_key <- file.path("C:/Users/fxtrams/.ssh", "id_api")
 api_key <- decrypt_envelope(out$data, out$iv, out$session, path_private_key, password = "") %>% 
@@ -103,7 +104,13 @@ api_key <- decrypt_envelope(out$data, out$iv, out$session, "C:/Users/fxtrams/.ss
 # Translation test
 
 ```{r}
+#Testing using Test Data file
+file_translate <- "C:/Users/fxtrams/Documents/003_Udemy/cloud_translate/TEST_DATA/L0.vtt"
+translateVTT(file_translate, sourceLang = "en", destLang = "it", apikey = api_key)
+
+#Testing using a list of file names present in Downloads folder:
 translateVTT(filesToTranslate[1], sourceLang = "en", destLang = languages[1], apikey = api_key)
+
 ```
 
 

@@ -8,10 +8,10 @@ translateVTT <- function(fileName, sourceLang = "en", destLang, apikey, fileEnc 
   # PURPOSE: Translate *.vtt files from any language to any language using Google API key
   # Note: Google Tranlation with API is paid service, however 300USD is given for free for 12 month
   # variables for debugging
-  # fileName <- "TEST_DATA/L0.vtt"
+  # fileName <- filesToTranslate[1]
   # sourceLang <- "en"
   # destLang <- "de"
-  # apikey <- 
+  # apikey <- api_key
   
   require(stringr)
   require(tidyverse)
@@ -35,14 +35,14 @@ translateVTT <- function(fileName, sourceLang = "en", destLang, apikey, fileEnc 
   
   # translate object txt or file in R
   # Google, translate column in dataset
-  google.dataset.out <- translate(dataset = txt,
+  google.dataset.out <- translateR::translate(dataset = txt,
                                   content.field = 'WEBVTT',
                                   google.api.key = apikey,
                                   source.lang = sourceLang,
                                   target.lang = destLang)
   
   # extract only new column
-  trsltd <- google.dataset.out %>% select(translatedContent)
+  trsltd <- google.dataset.out %>% select(WEBVTT)
   
   # give original name
   colnames(trsltd) <- "WEBVTT"
@@ -58,14 +58,14 @@ translateVTT <- function(fileName, sourceLang = "en", destLang, apikey, fileEnc 
   colnames(bcd) <- "WEBVTT"
   
   # adding one row in the beginning
-  bcd <- as.tibble(bcd)
+  bcd <- as_tibble(bcd)
   # add one row
   bcd2 <- add_row(bcd, WEBVTT  = "", .before = 1)
   
   # write this file back :_)
   #fileName <- "C:/Users/fxtrams/Downloads/L1.vtt"
   #destLang <- "de"
-  write.table(bcd2, paste0(fileName, destLang, ".vtt"), quote = F, row.names = F,fileEncoding = fileEnc)
+  write.table(bcd2, paste0(fileName, destLang, ".vtt"), quote = F, row.names = F)
   
 }
 

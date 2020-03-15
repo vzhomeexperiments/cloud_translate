@@ -39,3 +39,6 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 api_key.enc.rds
+jobs_web_scrap.R
+trials.R
+trials.R
